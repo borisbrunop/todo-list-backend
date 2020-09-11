@@ -17,3 +17,57 @@ class User(db.Model):
             "email": self.email,
             # do not serialize the password, its a security breach
         }
+
+class Usuario(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)
+    tasks = db.relationship("Task", backref="usuario")
+
+    def __init__(self, name):
+        self.name = name
+
+    @classmethod
+    def register(cls, name):
+        new_user = cls(
+            name
+        )
+        return new_user
+
+    def serialize(self):
+        tasks_list = self.tasks
+        list_tasks = []
+        for task in tasks_list:
+            list_tasks.append(task.label)
+        return{
+            "id": self.id,
+            "name": self.name,
+            "tasks": list_tasks
+        }
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    label = db.Column(db.String(50), nullable=False)
+    done = db.Column(db.Boolean, nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
+
+    def __init__(self, label, done, usuario_id):
+        self.label = label
+        self.done = done
+        self.usuario_id = usuario_id
+
+    @classmethod
+    def register(cls, label, done, usuario_id):
+        new_task = cls(
+            label,
+            done,
+            usuario_id
+        )
+        return new_task
+
+    def serialize(self):
+        return{
+            "id": self.id,
+            "label": self.label,
+            "done": self.done,
+            "usuario_id": self.usuario_id
+        }
